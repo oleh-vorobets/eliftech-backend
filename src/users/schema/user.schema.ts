@@ -13,7 +13,7 @@ export const userSchema = new Schema(
       required: true,
     },
     birth: {
-      type: Date,
+      type: String,
       required: true,
     },
     hearAbout: {

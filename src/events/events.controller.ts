@@ -1,12 +1,4 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  ParseIntPipe,
-  Post,
-  Query,
-} from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { AddUserDto } from './dtos/add-user.dto';
 
@@ -14,26 +6,17 @@ import { AddUserDto } from './dtos/add-user.dto';
 export class EventsController {
   constructor(private readonly eventsService: EventsService) {}
 
-  @Get('')
-  async getAllEvents(
-    @Query('offset', ParseIntPipe) offset: number,
-    @Query('limit', ParseIntPipe) limit: number,
-    @Query('sortBy') sortBy: string,
-    @Query('sortOrder') sortOrder: string,
-  ) {
-    const offsetValue = offset ?? 0;
-    const limitValue = limit ?? 0;
-    return await this.eventsService.getAll(
-      offsetValue,
-      limitValue,
-      sortBy,
-      sortOrder,
-    );
-  }
-
   @Get(':id')
-  async getEventUsers(@Param('id') eventId: string) {
-    return await this.eventsService.getEventUsers(eventId);
+  async getEventUsers(
+    @Param('id') eventId: string,
+    @Query('searchKey') searchKey: string,
+    @Query('searchValue') searchValue: string,
+  ) {
+    return await this.eventsService.getEventUsers(
+      eventId,
+      searchKey,
+      searchValue,
+    );
   }
 
   @Post(':id')
@@ -42,5 +25,22 @@ export class EventsController {
     @Body() payload: AddUserDto,
   ) {
     return await this.eventsService.addToEvent(eventId, payload);
+  }
+
+  @Get('')
+  async getAllEvents(
+    @Query('sortBy') sortBy: string,
+    @Query('sortOrder') sortOrder: string,
+    @Query('offset') offset?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const offsetValue = offset ? +offset : 0;
+    const limitValue = limit ? +limit : 0;
+    return await this.eventsService.getAll(
+      sortBy,
+      sortOrder,
+      offsetValue,
+      limitValue,
+    );
   }
 }

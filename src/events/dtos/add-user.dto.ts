@@ -1,5 +1,5 @@
 import {
-  IsDate,
+  IsDateString,
   IsEmail,
   IsEnum,
   IsString,
@@ -17,7 +17,7 @@ export class AddUserDto {
   @IsEmail()
   email: string;
 
-  @IsDate()
+  @IsDateString()
   birth: Date;
 
   @IsEnum(HearAbout)

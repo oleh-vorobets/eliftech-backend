@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Events } from './types/events.type';
@@ -14,15 +18,15 @@ export class EventsService {
   ) {}
 
   async getAll(
-    offset: number,
-    limit: number,
-    sortBy?: string,
-    sortOrder?: string,
+    sortBy: string,
+    sortOrder: string,
+    offset?: number,
+    limit?: number,
   ) {
     const sortOptions: { [key: string]: 1 | -1 } = {};
 
     if (sortBy) {
-      sortOptions[sortBy] = (sortOrder ?? 'asc') === 'asc' ? 1 : -1;
+      sortOptions[sortBy] = +sortOrder as 1 | -1;
     }
 
     const events = await this.eventsModel
@@ -37,16 +41,35 @@ export class EventsService {
 
   async addToEvent(eventId: string, participant: AddUserDto) {
     const participantId = await this.usersService.addOne(participant as Users);
-    await this.eventsModel.updateOne(
-      { _id: eventId },
-      { $push: { participants: participant } },
-    );
+    const event = await this.eventsModel.findOne({ _id: eventId });
+    // { $push: { participants: participantId } },
+    if (event.participants.includes(participantId)) {
+      throw new BadRequestException('This participant is already registered');
+    }
+    event.participants.push(participantId);
+    await event.save();
     return participantId;
   }
 
-  async getEventUsers(eventId: string) {
-    const res = await this.eventsModel.find({ id: eventId }).populate('Users');
-    console.log(res);
-    return res;
+  async getEventUsers(
+    eventId: string,
+    searchKey?: string,
+    searchValue?: string,
+  ) {
+    console.log(searchKey, searchValue);
+    const event = await this.eventsModel.findOne({ _id: eventId }).populate({
+      path: 'participants',
+      match:
+        searchValue && searchKey
+          ? { [searchKey]: { $regex: searchValue, $options: 'i' } }
+          : {},
+    });
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+    return {
+      participants: event.participants,
+      eventTitle: event.title,
+    };
   }
 }

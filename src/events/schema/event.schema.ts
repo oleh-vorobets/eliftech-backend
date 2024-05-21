@@ -6,7 +6,7 @@ export const eventSchema = new Schema(
       type: String,
       required: true,
       minlength: 3,
-      maxlength: 20,
+      maxlength: 60,
       trim: true,
     },
     description: {
