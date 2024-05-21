@@ -32,6 +32,8 @@
 $ npm install
 ```
 
+After intallation go to the .env file and add uri to your MongoDB
+
 ## Running the app
 
 ```bash
